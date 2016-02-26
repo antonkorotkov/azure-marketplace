@@ -135,9 +135,9 @@
             }
           },
           {
-            "name": "OctopusDirectory",
+            "name": "OctopusDataDirectory",
             "type": "Microsoft.Common.TextBox",
-            "label": "Octopus Directory",
+            "label": "Octopus Data Directory",
             "defaultValue": "Octopus",
             "constraints": {
               "required": true,
