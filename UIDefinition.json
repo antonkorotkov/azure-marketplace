@@ -1,0 +1,233 @@
+{
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [],
+    "steps": [
+      {
+        "name": "OctopusServerVirtualMachine",
+        "label": "Server",
+        "subLabel": {
+          "preValidation": "Configure the Virtual Machine",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Octopus Deploy Server Virtual Machine Settings",
+        "elements": [
+          {
+            "name": "OctopusServerVMName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Octopus Deploy Server Virtual Machine Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a name for the VM"
+            }
+          },
+          {
+            "name": "OctopusServerVMAdminUserName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Server Administrator User Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter an administrator user name"
+            }
+          },
+          {
+            "name": "OctopusServerVMPassword",
+            "type": "Microsoft.Compute.CredentialsCombo",
+            "label": {
+              "password": "Administrator Password",
+              "confirmPassword": "Confirm password"
+            },
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter an administrator password"
+            },
+            "options": {
+              "hideConfirmation": false
+            },
+            "osPlatform": "Windows"
+          },
+          {
+            "name": "OctopusServerVMSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual Machine Size",
+            "toolTip": "",
+            "recommendedSizes": [
+              "Standard_D2",
+              "Standard_D3"
+            ],
+            "constraints": {
+              "allowedSizes": [],
+              "excludedSizes": []
+            },
+            "osPlatform": "Windows",
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "2012-R2-Datacenter"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Database",
+        "label": "Database",
+        "subLabel": {
+          "preValidation": "Configure the Azure SQL Database",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Database Settings",
+        "elements": [
+          {
+            "name": "SqlServerName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "SQL Server Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a name for the SQL Server"
+            }
+          },
+          {
+            "name": "OctopusDatabaseName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Octopus Deploy Database Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a name for the Octopus Database"
+            }
+          },
+          {
+            "name": "SqlServerAdminUserName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "SQL Server Administrator User Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a SQL Server administrator user name"
+            }
+          },
+          {
+            "name": "SqlServerAdminPassword",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": "SQL Server Administrator Password",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a SQL Server administrator password"
+            }
+          }
+        ]
+      },
+      {
+        "name": "FileStorage",
+        "label": "File Storage",
+        "subLabel": {
+          "preValidation": "Configure Azure File Storage",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "File Storage Settings",
+        "elements": [
+          {
+            "name": "StorageAccount",
+            "type": "Microsoft.Storage.StorageAccountSelector",
+            "label": "Storage Account",
+            "toolTip": "",
+            "options": {
+              "hideExisting": false
+            }
+          },
+          {
+            "name": "OctopusDirectory",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Octopus Directory",
+            "defaultValue": "Octopus",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter a name for the SQL Server"
+            }
+          }
+        ]
+      },
+      {
+        "name": "License",
+        "label": "License",
+        "subLabel": {
+          "preValidation": "Enter Octopus Deploy License Details",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Octopus Deploy License Details",
+        "elements": [
+          {
+            "name": "LicenseFullName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Full Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter your full name"
+            }
+          },
+          {
+            "name": "LicenseOrganization",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Organization",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter your organization"
+            }
+          },
+          {
+            "name": "LicenseEmail",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Email",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter your email address"
+            }
+          }
+        ]
+      },
+      {
+        "name": "OctopusPortal",
+        "label": "Octopus Deploy Portal",
+        "subLabel": {
+          "preValidation": "Enter Octopus Deploy Portal Details",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "Octopus Deploy Portal Settings",
+        "elements": [
+          {
+            "name": "OctopusAdministratorUserName",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Octopus Deploy Administrator User Name",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter an Octopus Deploy administrator user name"
+            }
+          },
+          {
+            "name": "OctopusAdministratorPassword",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": "Octopus Deploy Administrator Password",
+            "constraints": {
+              "required": true,
+              "validationMessage": "Please enter an Octopus Deploy administrator password"
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "octopusServerDnsName": "[steps('OctopusServerVirtualMachine').OctopusServerVMName]",
+      "vmAdminUsername": "[steps('OctopusServerVirtualMachine').OctopusServerVMAdminUserName]",
+      "vmAdminPassword": "[steps('OctopusServerVirtualMachine').OctopusServerVMAdminPassword]",
+      "octopusServerVmSize": "[steps('OctopusServerVirtualMachine').OctopusServerVMSize]",
+      "sqlServerName": "[steps('Database').SqlServerName]",
+      "sqlAdminUsername": "[steps('Database').SqlServerAdminUserName]",
+      "sqlAdminPassword": "[steps('Database').SqlServerAdminPassword]",
+      "vmDisksStorageAccountName": "[steps('FileStorage').StorageAccount]",
+      "licenseFullName": "[steps('License').LicenseFullName]",
+      "licenseOrganisationName": "[steps('License').LicenseOrganization]",
+      "licenseEmailAddress": "[steps('License').LicenseEmail]",
+      "octopusServerAdminUsername": "[steps('OctopusPortal').OctopusAdministratorUserName]",
+      "octopusServerAdminPassword": "[steps('OctopusPortal').OctopusAdministratorPassword]"
+    }
+  }
+}
