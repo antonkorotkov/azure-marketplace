@@ -1,0 +1,433 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "octopusDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name used to address Octopus Deploy."
+      }
+    },
+    "octopusAdminUsername" : {
+      "type": "string",
+      "defaultValue": "admin",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy application."
+      }
+    },
+    "octopusAdminPassword" : {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy application."
+      }
+    },
+    "vmSize" : {
+      "type": "string",
+      "defaultValue": "Standard_DS2",
+      "metadata": {
+        "description": "VM Size for Octopus Deploy Virtual Machine."
+      }
+    },
+    "vmAdminUsername": {
+      "type": "string",
+      "defaultValue": "octoadmin",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy Virtual Machine."
+      }
+    },
+    "vmAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy Virtual Machine."
+      }
+    },    
+    "sqlAdminUsername": {
+      "type": "string",
+      "defaultValue": "sqladmin",
+      "metadata": {
+        "description": "Admin username for the Octopus Deploy SQL DB Server."
+      }
+    },
+    "sqlAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the Octopus Deploy SQL DB Server."
+      }
+    },
+    "sqlDbServiceTier": {
+      "type": "string",
+      "defaultValue": "S1",
+      "allowedValues": [
+        "S0",
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "metadata": {
+        "description": "Database Service Tier for the Octopus Deploy DB."
+      }
+    },
+    "licenseFullName": { 
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Full Name."
+      }
+    },
+    "licenseOrganisationName": { 
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Organisation Name."
+      }
+    },
+    "licenseEmailAddress": { 
+      "type": "string",
+      "metadata": {
+        "description": "Octopus Deploy Trial license - provide Email Addres."
+      }
+    }
+  },
+  
+  "variables": {
+    
+    "namespace": "octopus",
+    "location": "[resourceGroup().location]",
+    "tags": {
+      "vendor": "Octopus Deploy"
+    },
+    "vm" : {
+      "name": "[concat(variables('namespace'), '-vm')]",
+      "credentials": {
+        "admin": {
+          "username": "[parameters('vmAdminUsername')]",
+          "password": "[parameters('vmAdminPassword')]"
+        }
+      },
+      "size": "[parameters('vmSize')]",
+      "image": {
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2012-R2-Datacenter",
+        "version": "latest"
+      },
+      "osdisk": {
+        "name": "[concat(variables('namespace'), '-osdisk')]",
+        "storageAccount": {
+          "name": "[concat(variables('namespace'), '01', uniqueString(resourceGroup().id))]",
+          "type": "Premium_LRS"
+        }
+      },
+      "datadisk": {
+        "name": "[concat(variables('namespace'), '-datadisk')]",
+        "diskSizeGB": "1023",
+        "storageAccount": {
+          "name": "[concat(variables('namespace'), '02', uniqueString(resourceGroup().id))]",
+          "type": "Standard_GRS"
+        }
+      },
+      "nic": {
+        "name": "[concat(variables('namespace'), '-nic')]",
+        "ipConfigName": "[concat(variables('namespace'), '-ipconfig')]"
+      },
+      "extension": {
+        "name": "[concat(variables('namespace'), '-vm/octopusDeployInstaller')]",
+        "installer": { 
+          "fileUris": [
+            "https://pbpowershellscripts.blob.core.windows.net/octopusdeploy/Install-OctopusDeploy.ps1"
+          ],
+          "commandToExecute": "[concat('powershell.exe -File Install-OctopusDeploy.ps1 ', base64(variables('azureSql').database.connectionString), ' ', base64(variables('octopus').license.fullName), ' ', base64(variables('octopus').license.organisationName), ' ', base64(variables('octopus').license.emailAddress), ' ', base64(variables('octopus').credentials.admin.username), ' ', base64(variables('octopus').credentials.admin.password), ' 2>&1 > D:\\Install-OctopusDeploy.ps1.log ')]"
+        }
+      }
+    },
+    "network": {
+      "domainName": "[parameters('octopusDnsName')]",
+      "publicIP": {
+        "name": "[concat(variables('namespace'), '-publicip')]",
+        "type": "Static"
+      },
+      "vnet": {
+        "name": "[concat(variables('namespace'), '-vnet')]",
+        "addressPrefix": "10.0.0.0/16",
+        "subnet": {
+          "name": "[concat(variables('namespace'), '-subnet')]",
+          "addressPrefix": "10.0.0.0/24"
+        }
+      }
+    },    
+    "sqlServerName": "[concat(variables('namespace'), uniqueString(resourceGroup().id))]",
+    "azureSql": {
+      "server": {
+        "name": "[variables('sqlServerName')]",
+        "credentials": {
+          "admin": {
+            "username": "[parameters('sqlAdminUsername')]",
+            "password": "[parameters('sqlAdminPassword')]"
+          }
+        }
+      },
+      "database": {
+        "name": "OctopusDeploy",
+        "edition": "Standard",
+        "serviceTier": "[parameters('sqlDbServiceTier')]",
+        "collation": "SQL_Latin1_General_CP1_CI_AS",        
+        "maxSizeBytes": "268435456000",
+        "connectionString": "[concat('Server=tcp:', variables('sqlServerName'), '.database.windows.net,1433;Database=OctopusDeploy', ';User Id=', parameters('sqlAdminUsername'), '@', variables('sqlServerName'), ';Password=', parameters('sqlAdminPassword'), ';Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
+      }
+    },    
+    "octopus": {
+      "credentials": {
+        "admin": {
+          "username": "[parameters('octopusAdminUsername')]",
+          "password": "[parameters('octopusAdminPassword')]"
+        }
+      },
+      "license": {
+        "fullName": "[parameters('licenseFullName')]",
+        "organisationName": "[parameters('licenseOrganisationName')]",
+        "emailAddress": "[parameters('licenseEmailAddress')]"
+      }
+    }
+  },
+  
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('vm').datadisk.storageAccount.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "accountType": "[variables('vm').datadisk.storageAccount.type]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('vm').osdisk.storageAccount.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "accountType": "[variables('vm').osdisk.storageAccount.type]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('network').publicIP.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "[variables('network').publicIP.type]",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('network').domainName]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('network').vnet.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('network').vnet.addressPrefix]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('network').vnet.subnet.name]",
+            "properties": {
+              "addressPrefix": "[variables('network').vnet.subnet.addressPrefix]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('vm').nic.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('network').publicIP.name)]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('network').vnet.name)]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "[variables('vm').nic.ipConfigName]",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('network').publicIP.name)]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('network').vnet.name), '/subnets/', variables('network').vnet.subnet.name)]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vm').name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('vm').osdisk.storageAccount.name)]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('vm').nic.name)]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vm').size]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vm').name]",
+          "adminUsername": "[variables('vm').credentials.admin.username]",
+          "adminPassword": "[variables('vm').credentials.admin.password]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vm').image.publisher]",
+            "offer": "[variables('vm').image.offer]",
+            "sku": "[variables('vm').image.sku]",
+            "version": "[variables('vm').image.version]"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('vm').osdisk.storageAccount.name, '.blob.core.windows.net/vhds/', variables('vm').osdisk.name, '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "[variables('vm').datadisk.name]",
+              "diskSizeGB": "[variables('vm').datadisk.diskSizeGB]",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://', variables('vm').datadisk.storageAccount.name, '.blob.core.windows.net/vhds/', variables('vm').datadisk.name, '.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vm').nic.name)]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://', variables('vm').datadisk.storageAccount.name,'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15", 
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[variables('vm').extension.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vm').name)]",
+        "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name, '/databases/', variables('azureSql').database.name)]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": "[variables('vm').extension.installer.fileUris]",
+          "commandToExecute": "[variables('vm').extension.installer.commandToExecute]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2014-04-01-preview",
+      "type": "Microsoft.Sql/servers",
+      "name": "[variables('azureSql').server.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "version": "12.0",
+        "administratorLogin": "[variables('azureSql').server.credentials.admin.username]",
+        "administratorLoginPassword": "[variables('azureSql').server.credentials.admin.password]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2014-04-01-preview",
+          "type": "databases",
+          "name": "[variables('azureSql').database.name]",
+          "location": "[variables('location')]",
+          "tags": {
+            "vendor": "[variables('tags').vendor]"
+          },
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name)]"
+          ],
+          "properties": {
+            "edition": "[variables('azureSql').database.edition]",
+            "collation": "[variables('azureSql').database.collation]",
+            "maxSizeBytes": "[variables('azureSql').database.maxSizeBytes]",
+            "requestedServiceObjectiveName": "[variables('azureSql').database.serviceTier]"
+          }
+        },
+        {
+          "type": "firewallrules",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name)]",
+            "[concat('Microsoft.Network/publicIPAddresses/', variables('network').publicIP.name)]"
+          ],
+          "location": "[variables('location')]",
+          "name": "AllowAccessToOctopusServerPublicIP",
+          "properties": {
+            "startIpAddress": "[reference(variables('network').publicIP.name).ipAddress]",
+            "endIpAddress": "[reference(variables('network').publicIP.name).ipAddress]"
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+    "octopusDomainLabel": {
+      "type": "string",
+      "value": "[reference(variables('network').publicIP.name).dnsSettings.fqdn]"  
+    },
+    "octopusPublicIP": {
+      "type": "string",
+      "value": "[reference(variables('network').publicIP.name).ipAddress]"  
+    },
+    "sqlServerDomainLabel": {
+       "type": "string",
+       "value": "[reference(concat('Microsoft.Sql/servers/', variables('azureSql').server.name)).fullyQualifiedDomainName]"
+     }
+  }
+}
