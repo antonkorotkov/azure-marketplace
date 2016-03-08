@@ -23,7 +23,7 @@
     },
     "vmSize" : {
       "type": "string",
-      "defaultValue": "Standard_DS2",
+      "defaultValue": "Standard_D2",
       "metadata": {
         "description": "VM Size for Octopus Deploy Virtual Machine."
       }
@@ -113,7 +113,7 @@
         "name": "[concat(variables('namespace'), '-osdisk')]",
         "storageAccount": {
           "name": "[concat(variables('namespace'), '01', uniqueString(resourceGroup().id))]",
-          "type": "Premium_LRS"
+          "type": "Standard_LRS"
         }
       },
       "datadisk": {
@@ -151,6 +151,9 @@
           "name": "[concat(variables('namespace'), '-subnet')]",
           "addressPrefix": "10.0.0.0/24"
         }
+      },
+      "networkSecurityGroup": {
+        "name": "[concat(variables('namespace'), '-nsg')]"
       }
     },    
     "sqlServerName": "[concat(variables('namespace'), uniqueString(resourceGroup().id))]",
@@ -254,6 +257,47 @@
     },
     {
       "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('network').networkSecurityGroup.name]",
+      "location": "[variables('location')]",
+      "tags": {
+        "vendor": "[variables('tags').vendor]"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow_web",
+            "properties": {
+              "description": "Allow web",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "allow_rdp",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('vm').nic.name]",
       "location": "[variables('location')]",
@@ -273,6 +317,9 @@
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('network').publicIP.name)]"
               },
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('network').networkSecurityGroup.name)]"
+              },
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('network').vnet.name), '/subnets/', variables('network').vnet.subnet.name)]"
               }
@@ -291,6 +338,7 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('vm').osdisk.storageAccount.name)]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('vm').datadisk.storageAccount.name)]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('vm').nic.name)]"
       ],
       "properties": {
@@ -340,7 +388,7 @@
         "diagnosticsProfile": {
           "bootDiagnostics": {
             "enabled": "true",
-            "storageUri": "[concat('http://', variables('vm').datadisk.storageAccount.name,'.blob.core.windows.net')]"
+            "storageUri": "[concat('http://', variables('vm').datadisk.storageAccount.name, '.blob.core.windows.net')]"
           }
         }
       }
