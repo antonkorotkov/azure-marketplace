@@ -48,7 +48,7 @@
                 "name": "OctopusServerVMAdminUserName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Server Administrator User Name",
-                "defaultValue": "admin",
+                "defaultValue": "octoadmin",
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please enter an administrator user name"
@@ -138,7 +138,7 @@
                 "name": "OctopusAdministratorUserName",
                 "type": "Microsoft.Common.TextBox",
                 "label": "User Name",
-                "defaultValue": "octoadmin",
+                "defaultValue": "admin",
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please enter an Octopus Deploy administrator user name"
@@ -194,7 +194,6 @@
     ],
     "outputs": {
       "octopusDnsName": "[steps('Infrastructure').VM.OctopusServerVMPublicIP.domainNameLabel]",
-      "octopusPublicIPName": "[steps('Infrastructure').VM.OctopusServerVMPublicIP.name]",
       "vmAdminUsername": "[steps('Infrastructure').VM.OctopusServerVMAdminUserName]",
       "vmAdminPassword": "[steps('Infrastructure').VM.OctopusServerVMAdminPassword.password]",
       "vmSize": "[steps('Infrastructure').VM.OctopusServerVMSize]",
@@ -203,8 +202,8 @@
       "licenseFullName": "[steps('Octopus').License.LicenseFullName]",
       "licenseOrganisationName": "[steps('Octopus').License.LicenseOrganization]",
       "licenseEmailAddress": "[steps('Octopus').License.LicenseEmail]",
-      "octopusServerAdminUsername": "[steps('Octopus').Credentials.OctopusAdministratorUserName]",
-      "octopusServerAdminPassword": "[steps('Octopus').Credentials.OctopusAdministratorPassword]"
+      "octopusAdminUsername": "[steps('Octopus').Credentials.OctopusAdministratorUserName]",
+      "octopusAdminPassword": "[steps('Octopus').Credentials.OctopusAdministratorPassword]"
     }
   }
 }
