@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "baseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Base URL for Marketplace",
+        "artifactsBaseUrl": ""
+       },
+       "defaultValue": "https://raw.githubusercontent.com/OctopusDeploy/azure-marketplace/master"
+     },
     "octopusDnsName": {
       "type": "string",
       "metadata": {
@@ -88,7 +96,7 @@
   },
   
   "variables": {
-    
+    "baseUrl": "[parameters('baseUrl')]",
     "namespace": "octopus",
     "location": "[resourceGroup().location]",
     "tags": {
@@ -132,7 +140,7 @@
         "name": "[concat(variables('namespace'), '-vm/octopusDeployInstaller')]",
         "installer": { 
           "fileUris": [
-            "https://pbpowershellscripts.blob.core.windows.net/octopusdeploy/Install-OctopusDeploy.ps1"
+            "[concat(variables('baseUrl'), '/Install-OctopusDeploy.ps1')]"
           ],
           "commandToExecute": "[concat('powershell.exe -File Install-OctopusDeploy.ps1 ', base64(variables('azureSql').database.connectionString), ' ', base64(variables('octopus').license.fullName), ' ', base64(variables('octopus').license.organisationName), ' ', base64(variables('octopus').license.emailAddress), ' ', base64(variables('octopus').credentials.admin.username), ' ', base64(variables('octopus').credentials.admin.password), ' 2>&1 > D:\\Install-OctopusDeploy.ps1.log ')]"
         }
