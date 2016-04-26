@@ -109,7 +109,7 @@
                 "defaultValue": "sqladmin",
                 "constraints": {
                   "required": true,
-                  "regex": "^(?!(admin$|administrator$|guest$|root$|sa$)).*",
+                  "regex": "^(?!admin$|administrator$|sa$|root$|dbmanager$|loginmanager$|dbo$|guest$|information_schema$|sys$|db_accessadmin$|db_backupoperator$|db_datareader$|db_datawriter$|db_ddladmin$|db_denydatareader$|db_denydatawriter$|db_owner$|db_securityadmin$|public$)[a-zA-Z][a-zA-Z0-9]{1,9}$",
                   "validationMessage": "The specified user name is not allowed. User names must meet length requirements, and must not include reserved words or unsupported characters. Try again with a different value."
                 }
               },
@@ -120,7 +120,7 @@
                 "toolTip": "Please enter a SQL Server admin password.",
                 "constraints": {
                   "required": true,
-                  "regex": "^((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])|(?=.*[0-9])(?=.*[a-z])(?=.*[!@#$%^&*])|(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])|(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])).{8,128}$",
+                  "regex": "^(?=.*[A-Z])(?=.*[!@#$%])(?=.*[0-9])(?=.*[a-z]).{8,16}$",
                   "validationMessage": "The password must be at least 8 characters long and have 3 out of the following: one number, one lower case, one upper case, or one special character."                
                 }
               }
