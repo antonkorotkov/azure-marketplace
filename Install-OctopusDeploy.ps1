@@ -253,7 +253,12 @@ function Configure-OctopusDeploy
   Write-Log "done."  
 
   Write-Log "Obtaining a trial license for Full Name: $($config.licenseFullName), Organisation Name: $($config.licenseOrganisationName), Email Address: $($config.licenseEmailAddress) ..."
-  $postParams = @{ FullName="$($config.licenseFullName)";Organization="$($config.licenseOrganisationName)";EmailAddress="$($config.licenseEmailAddress)" }
+  $postParams = @{ 
+                  FullName="$($config.licenseFullName)"
+                  Organization="$($config.licenseOrganisationName)"
+                  EmailAddress="$($config.licenseEmailAddress)" 
+                  Source="azure"
+                 }
   $response = Invoke-WebRequest -UseBasicParsing -Uri "$octopusLicenseUrl" -Method POST -Body $postParams
   $utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
   $bytes  = $utf8NoBOM.GetBytes($response.Content)
