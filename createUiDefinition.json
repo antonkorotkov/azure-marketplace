@@ -62,7 +62,9 @@
                   "password": "Admin Password",
                   "confirmPassword": "Confirm Admin Password"
                 },
-                "toolTip": "Please enter an admin password.",
+                "toolTip": {
+                   "password": "Please enter an admin password."
+                },                
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please enter an admin password."
