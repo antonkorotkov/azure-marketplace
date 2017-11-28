@@ -170,30 +170,30 @@ function Configure-OctopusDeploy
   Write-CommandOutput $output
   Write-Log "done."
   
+  Write-Log "Creating Octopus Deploy database ..."
+  $args = @(
+    'database', 
+    '--console',
+    '--connectionString', $($config.sqlDbConnectionString), 
+    '--instance', 'OctopusServer', 
+    '--create'
+  )
+  $output = .$exe $args
+  Write-CommandOutput $output
+  Write-Log "done."
+    
   Write-Log "Configuring Octopus Deploy instance ..."
   $args = @(
     'configure', 
     '--console',
     '--instance', 'OctopusServer', 
     '--home', 'C:\Octopus', 
-    '--storageConnectionString', $($config.sqlDbConnectionString), 
     '--upgradeCheck', 'True', 
     '--upgradeCheckWithStatistics', 'True', 
-    '--webAuthenticationMode', 'UsernamePassword', 
+    '--usernamePasswordIsEnabled', 'True', 
     '--webForceSSL', 'False', 
     '--webListenPrefixes', 'http://localhost:80/', 
     '--commsListenPort', '10943'     
-  )
-  $output = .$exe $args
-  Write-CommandOutput $output
-  Write-Log "done."
-    
-  Write-Log "Creating Octopus Deploy database ..."
-  $args = @(
-    'database', 
-    '--console',
-    '--instance', 'OctopusServer', 
-    '--create'
   )
   $output = .$exe $args
   Write-CommandOutput $output
