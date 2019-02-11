@@ -48,7 +48,7 @@
       "metadata": {
         "description": "Admin password for the Octopus Deploy Virtual Machine."
       }
-    },    
+    },
     "sqlAdminUsername": {
       "type": "string",
       "defaultValue": "sqladmin",
@@ -75,26 +75,26 @@
         "description": "Database Service Tier for the Octopus Deploy DB."
       }
     },
-    "licenseFullName": { 
+    "licenseFullName": {
       "type": "string",
       "metadata": {
         "description": "Octopus Deploy Trial license - provide Full Name."
       }
     },
-    "licenseOrganisationName": { 
+    "licenseOrganisationName": {
       "type": "string",
       "metadata": {
         "description": "Octopus Deploy Trial license - provide Organisation Name."
       }
     },
-    "licenseEmailAddress": { 
+    "licenseEmailAddress": {
       "type": "string",
       "metadata": {
         "description": "Octopus Deploy Trial license - provide Email Addres."
       }
     }
   },
-  
+
   "variables": {
     "baseUrl": "[parameters('baseUrl')]",
     "namespace": "octopus",
@@ -117,15 +117,11 @@
       "image": {
         "publisher": "MicrosoftWindowsServer",
         "offer": "WindowsServer",
-        "sku": "2012-R2-Datacenter",
+        "sku": "2019-Datacenter",
         "version": "latest"
       },
       "osdisk": {
-        "name": "[concat(variables('namespace'), '-osdisk')]",
-        "storageAccount": {
-          "name": "[concat(variables('namespace'), '01', uniqueString(resourceGroup().id))]",
-          "type": "Standard_LRS"
-        }
+        "name": "[concat(variables('namespace'), '-osdisk')]"
       },
       "datadisk": {
         "name": "[concat(variables('namespace'), '-datadisk')]",
@@ -170,7 +166,7 @@
       "networkSecurityGroup": {
         "name": "[concat(variables('namespace'), '-nsg')]"
       }
-    },    
+    },
     "sqlServerName": "[concat(variables('namespace'), uniqueString(resourceGroup().id))]",
     "azureSql": {
       "server": {
@@ -186,11 +182,11 @@
         "name": "OctopusDeploy",
         "edition": "Standard",
         "serviceTier": "[parameters('sqlDbServiceTier')]",
-        "collation": "SQL_Latin1_General_CP1_CI_AS",        
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
         "maxSizeBytes": "268435456000",
         "connectionString": "[concat('Server=tcp:', variables('sqlServerName'), '.database.windows.net,1433;Database=OctopusDeploy', ';User Id=', parameters('sqlAdminUsername'), '@', variables('sqlServerName'), ';Password=', parameters('sqlAdminPassword'), ';Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]"
       }
-    },    
+    },
     "octopus": {
       "credentials": {
         "admin": {
@@ -205,7 +201,7 @@
       }
     }
   },
-  
+
   "resources": [
     {
       "apiVersion": "2015-06-15",
@@ -217,18 +213,6 @@
       },
       "properties": {
         "accountType": "[variables('vm').datadisk.storageAccount.type]"
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('vm').osdisk.storageAccount.name]",
-      "location": "[variables('location')]",
-      "tags": {
-        "vendor": "[variables('tags').vendor]"
-      },
-      "properties": {
-        "accountType": "[variables('vm').osdisk.storageAccount.type]"
       }
     },
     {
@@ -293,20 +277,6 @@
               "priority": 100,
               "direction": "Inbound"
             }
-          },
-          {
-            "name": "allow_rdp",
-            "properties": {
-              "description": "Allow RDP",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "3389",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 101,
-              "direction": "Inbound"
-            }
           }
         ]
       }
@@ -332,7 +302,7 @@
               "privateIPAllocationMethod": "Dynamic",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('network').publicIP.name)]"
-              },              
+              },
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('network').vnet.name), '/subnets/', variables('network').vnet.subnet.name)]"
               }
@@ -345,7 +315,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-06-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[variables('vm').name]",
       "location": "[variables('location')]",
@@ -353,7 +323,6 @@
         "vendor": "[variables('tags').vendor]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('vm').osdisk.storageAccount.name)]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('vm').datadisk.storageAccount.name)]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('vm').nic.name)]"
       ],
@@ -374,10 +343,7 @@
             "version": "[variables('vm').image.version]"
           },
           "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('vm').osdisk.storageAccount.name, '.blob.core.windows.net/vhds/', variables('vm').osdisk.name, '.vhd')]"
-            },
+            "name": "[variables('vm').osdisk.name]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
@@ -386,9 +352,6 @@
               "name": "[variables('vm').datadisk.name]",
               "diskSizeGB": "[variables('vm').datadisk.diskSizeGB]",
               "lun": 0,
-              "vhd": {
-                "uri": "[concat('http://', variables('vm').datadisk.storageAccount.name, '.blob.core.windows.net/vhds/', variables('vm').datadisk.name, '.vhd')]"
-              },
               "caching": "None",
               "createOption": "Empty"
             }
@@ -403,14 +366,14 @@
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
-            "enabled": "true",
+            "enabled": true,
             "storageUri": "[concat('http://', variables('vm').datadisk.storageAccount.name, '.blob.core.windows.net')]"
           }
         }
       }
     },
     {
-      "apiVersion": "2015-06-15", 
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.installer.name]",
       "location": "[variables('location')]",
@@ -429,7 +392,7 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": "[variables('vm').extensions.installer.fileUris]"
-          
+
         },
         "protectedSettings": {
           "commandToExecute": "[variables('vm').extensions.installer.commandToExecute]"
@@ -437,18 +400,18 @@
       }
     },
     {
-      "apiVersion": "2015-06-15", 
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.diagnostics.name]",
       "location": "[variables('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]",
         "displayName": "Azure VM Diagnostics"
-      },      
+      },
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vm').name)]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('vm').datadisk.storageAccount.name)]"
-      ],      
+      ],
       "properties": {
         "publisher": "Microsoft.Azure.Diagnostics",
         "type": "IaaSDiagnostics",
@@ -498,7 +461,7 @@
           }
         },
         {
-          "type": "firewallrules",
+          "type": "firewallRules",
           "apiVersion": "2014-04-01",
           "dependsOn": [
             "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name)]",
@@ -517,11 +480,11 @@
   "outputs": {
     "octopusDomainLabel": {
       "type": "string",
-      "value": "[reference(variables('network').publicIP.name).dnsSettings.fqdn]"  
+      "value": "[reference(variables('network').publicIP.name).dnsSettings.fqdn]"
     },
     "octopusPublicIP": {
       "type": "string",
-      "value": "[reference(variables('network').publicIP.name).ipAddress]"  
+      "value": "[reference(variables('network').publicIP.name).ipAddress]"
     },
     "sqlServerDomainLabel": {
        "type": "string",
