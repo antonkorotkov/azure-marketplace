@@ -204,6 +204,19 @@
 
   "resources": [
     {
+      "apiVersion": "2015-01-01",
+      "name": "pid-f63cf841-7aba-4e48-bdf0-83d2facdb8f5",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+          "mode": "Incremental",
+          "template": {
+              "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+              "contentVersion": "1.0.0.0",
+              "resources": []
+          }
+      }
+    },
+    {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('vm').datadisk.storageAccount.name]",
