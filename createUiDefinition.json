@@ -64,7 +64,7 @@
                 },
                 "toolTip": {
                    "password": "Please enter an admin password."
-                },                
+                },
                 "constraints": {
                   "required": true,
                   "validationMessage": "Please enter an admin password."
@@ -123,7 +123,7 @@
                 "constraints": {
                   "required": true,
                   "regex": "^(?=.*[A-Z])(?=.*[!@#$%])(?=.*[0-9])(?=.*[a-z]).{8,16}$",
-                  "validationMessage": "The password must be at least 8 characters long and have 3 out of the following: one number, one lower case, one upper case, or one special character."                
+                  "validationMessage": "The password must be at least 8 characters long and have 3 out of the following: one number, one lower case, one upper case, or one special character."
                 }
               }
             ]

@@ -2,6 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
     "baseUrl": {
       "type": "string",
       "metadata": {
@@ -94,11 +101,10 @@
       }
     }
   },
-
   "variables": {
     "baseUrl": "[parameters('baseUrl')]",
     "namespace": "octopus",
-    "location": "[resourceGroup().location]",
+    "location": "[parameters('location')]",
     "tags": {
       "vendor": "Octopus Deploy"
     },
@@ -204,7 +210,7 @@
 
   "resources": [
     {
-      "apiVersion": "2015-01-01",
+      "apiVersion": "2018-11-01",
       "name": "pid-f63cf841-7aba-4e48-bdf0-83d2facdb8f5",
       "type": "Microsoft.Resources/deployments",
       "properties": {
@@ -217,7 +223,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-07-01",
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('vm').datadisk.storageAccount.name]",
       "location": "[variables('location')]",
@@ -229,7 +235,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('network').publicIP.name]",
       "location": "[variables('location')]",
@@ -244,7 +250,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('network').vnet.name]",
       "location": "[variables('location')]",
@@ -268,7 +274,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/networkSecurityGroups",
       "name": "[variables('network').networkSecurityGroup.name]",
       "location": "[variables('location')]",
@@ -295,7 +301,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('vm').nic.name]",
       "location": "[variables('location')]",
@@ -317,7 +323,7 @@
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('network').publicIP.name)]"
               },
               "subnet": {
-                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('network').vnet.name), '/subnets/', variables('network').vnet.subnet.name)]"
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('network').vnet.name), variables('network').vnet.subnet.name))]"
               }
             }
           }
@@ -328,7 +334,7 @@
       }
     },
     {
-      "apiVersion": "2018-06-01",
+      "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[variables('vm').name]",
       "location": "[variables('location')]",
@@ -380,13 +386,13 @@
         "diagnosticsProfile": {
           "bootDiagnostics": {
             "enabled": true,
-            "storageUri": "[concat('http://', variables('vm').datadisk.storageAccount.name, '.blob.core.windows.net')]"
+            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('vm').datadisk.storageAccount.name), '2018-07-01').primaryEndpoints.blob]"
           }
         }
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.installer.name]",
       "location": "[variables('location')]",
@@ -413,7 +419,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.diagnostics.name]",
       "location": "[variables('location')]",
@@ -436,13 +442,13 @@
         },
         "protectedSettings": {
           "storageAccountName": "[variables('vm').datadisk.storageAccount.name]",
-          "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('vm').datadisk.storageAccount.name), '2015-06-15').key1]",
+          "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('vm').datadisk.storageAccount.name), '2018-07-01').key1]",
           "storageAccountEndPoint": "https://core.windows.net"
         }
       }
     },
     {
-      "apiVersion": "2014-04-01",
+      "apiVersion": "2015-05-01",
       "type": "Microsoft.Sql/servers",
       "name": "[variables('azureSql').server.name]",
       "location": "[variables('location')]",
@@ -456,7 +462,7 @@
       },
       "resources": [
         {
-          "apiVersion": "2014-04-01",
+          "apiVersion": "2015-05-01",
           "type": "databases",
           "name": "[variables('azureSql').database.name]",
           "location": "[variables('location')]",
@@ -475,7 +481,7 @@
         },
         {
           "type": "firewallRules",
-          "apiVersion": "2014-04-01",
+          "apiVersion": "2015-05-01",
           "dependsOn": [
             "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name)]",
             "[concat('Microsoft.Network/publicIPAddresses/', variables('network').publicIP.name)]"
