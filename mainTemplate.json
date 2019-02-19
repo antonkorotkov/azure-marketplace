@@ -104,7 +104,6 @@
   "variables": {
     "baseUrl": "[parameters('baseUrl')]",
     "namespace": "octopus",
-    "location": "[parameters('location')]",
     "tags": {
       "vendor": "Octopus Deploy"
     },
@@ -226,7 +225,7 @@
       "apiVersion": "2018-07-01",
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('vm').datadisk.storageAccount.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -238,7 +237,7 @@
       "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('network').publicIP.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -253,7 +252,7 @@
       "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/virtualNetworks",
       "name": "[variables('network').vnet.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -277,7 +276,7 @@
       "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/networkSecurityGroups",
       "name": "[variables('network').networkSecurityGroup.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -304,7 +303,7 @@
       "apiVersion": "2018-12-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('vm').nic.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -337,7 +336,7 @@
       "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[variables('vm').name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -395,7 +394,7 @@
       "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.installer.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]",
         "displayName": "Octopus Deploy Installer"
@@ -422,7 +421,7 @@
       "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[variables('vm').extensions.diagnostics.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]",
         "displayName": "Azure VM Diagnostics"
@@ -451,7 +450,7 @@
       "apiVersion": "2015-05-01",
       "type": "Microsoft.Sql/servers",
       "name": "[variables('azureSql').server.name]",
-      "location": "[variables('location')]",
+      "location": "[parameters('location')]",
       "tags": {
         "vendor": "[variables('tags').vendor]"
       },
@@ -465,7 +464,7 @@
           "apiVersion": "2015-05-01",
           "type": "databases",
           "name": "[variables('azureSql').database.name]",
-          "location": "[variables('location')]",
+          "location": "[parameters('location')]",
           "tags": {
             "vendor": "[variables('tags').vendor]"
           },
@@ -486,7 +485,7 @@
             "[concat('Microsoft.Sql/servers/', variables('azureSql').server.name)]",
             "[concat('Microsoft.Network/publicIPAddresses/', variables('network').publicIP.name)]"
           ],
-          "location": "[variables('location')]",
+          "location": "[parameters('location')]",
           "name": "AllowAccessToOctopusServerPublicIP",
           "properties": {
             "startIpAddress": "[reference(variables('network').publicIP.name).ipAddress]",
