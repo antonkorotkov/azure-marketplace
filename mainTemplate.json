@@ -442,7 +442,7 @@
         "protectedSettings": {
           "storageAccountName": "[variables('vm').datadisk.storageAccount.name]",
           "storageAccountKey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('vm').datadisk.storageAccount.name), '2018-07-01').keys[0].value]",
-          "storageAccountEndPoint": "https://core.windows.net"
+          "storageAccountEndPoint": "[concat('https://', replace(split(reference(concat('Microsoft.Storage/storageAccounts/', variables('vm').datadisk.storageAccount.name), '2018-07-01').primaryEndpoints.blob, 'blob.')[1], '/', ''))]"
         }
       }
     },
