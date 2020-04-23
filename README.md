@@ -1,6 +1,6 @@
 Sometimes we need to update the Azure Marketplace Octopus VM offering and it's not enough to simply update our [Azure Marketplace](https://github.com/OctopusDeploy/azure-marketplace) git repository. The screenshot below is what this document is referring to. (This process can take a few weeks to go through, be sure to leave as much time as you can)
 
-  
+![image](https://user-images.githubusercontent.com/1627582/80054655-370bd400-8563-11ea-9419-500be1851f5a.png)
 
 What you will need:
 -------------------
@@ -19,13 +19,16 @@ Procedure
     
 3.  Select the Octopus Deploy **Azure Application** offer, (It should be the live one)
     
-4.  ![](https://octopushq.atlassian.net/wiki/download/attachments/115638275/image2017-11-30_11-38-16.png?api=v2)
+4.  ![image](https://user-images.githubusercontent.com/1627582/80054677-4ab73a80-8563-11ea-974d-6e13c6ba1fd1.png)
+
 5.  Compress your new marketplace package, it is **Critical** that you put all of your files in the root of the zip file, call this zip file what ever you like
     
-6.  ![](https://octopushq.atlassian.net/wiki/download/attachments/115638275/image2017-11-30_11-41-28.png?api=v2)
+6.  ![image](https://user-images.githubusercontent.com/1627582/80054696-586cc000-8563-11ea-9c76-4b077781595b.png)
+
 7.  Upload the new package in the SKU section
     
-8.  ![](https://octopushq.atlassian.net/wiki/download/attachments/115638275/image2017-11-30_11-44-27.png?api=v2)
+8.  ![image](https://user-images.githubusercontent.com/1627582/80054710-64588200-8563-11ea-8b45-a7f72a903085.png)
+
 9.  Now click Publish and wait for Microsoft to update the package, which can take 2 weeks if they run into problems.
     
 
